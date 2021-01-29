@@ -33,7 +33,7 @@ def image_input(model):
 
 def webcam_input(model):
     st.header("Webcam Live Feed")
-    run = st.checkbox('Run')
+    run = st.checkbox("Run")
     FRAME_WINDOW = st.image([], channels='BGR')
     SIDE_WINDOW = st.sidebar.image([], width=100, channels='BGR')
     camera = cv2.VideoCapture(0)
@@ -48,5 +48,6 @@ def webcam_input(model):
         target = style_transfer(frame, model)
         FRAME_WINDOW.image(target)
         SIDE_WINDOW.image(orig)
-    else:
+    else:        
+        st.warning("NOTE: Streamlit currently doesn't support webcam. So to use this, clone this repo and run it on local server.")")
         st.warning('Stopped')
