@@ -49,5 +49,5 @@ def webcam_input(model):
         FRAME_WINDOW.image(target)
         SIDE_WINDOW.image(orig)
     else:        
-        st.warning("NOTE: Streamlit currently doesn't support webcam. So to use this, clone this repo and run it on local server.")")
+        st.warning("NOTE: Streamlit currently doesn't support webcam. So to use this, clone this repo and run it on local server.")
         st.warning('Stopped')
