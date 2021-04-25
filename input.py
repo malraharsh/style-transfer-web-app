@@ -1,5 +1,6 @@
 import numpy as np
 import streamlit as st
+from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
 from PIL import Image
 import cv2
 import imutils
@@ -31,21 +32,18 @@ def image_input(model):
 
 def webcam_input(model):
     st.header("Webcam Live Feed")
-    run = st.checkbox("Run")
-    FRAME_WINDOW = st.image([], channels='BGR')
-    SIDE_WINDOW = st.sidebar.image([], width=100, channels='BGR')
-    camera = cv2.VideoCapture(0)
     WIDTH = st.sidebar.select_slider('QUALITY (May reduce the speed)', list(range(150, 501, 50)))
 
-    while run:
-        _, frame = camera.read()
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-        # orig = frame.copy()
-        orig = imutils.resize(frame, width=300)
-        frame = imutils.resize(frame, width=WIDTH)
-        target = style_transfer(frame, model)
-        FRAME_WINDOW.image(target)
-        SIDE_WINDOW.image(orig)
-    else:
-        st.warning("NOTE: Streamlit currently doesn't support webcam. So to use this, clone this repo and run it on local server.")
-        st.warning('Stopped')
+    class NeuralStyleTransferTransformer(VideoTransformerBase):
+        def transform(self, frame):
+            image = frame.to_ndarray(format="bgr24")
+            orig_h, orig_w = image.shape[0:2]
+
+            input = imutils.resize(image, width=WIDTH)
+
+            transferred = style_transfer(input, model)
+
+            result = cv2.resize((transferred * 255).astype(np.uint8), (orig_w, orig_h))
+            return result
+
+    webrtc_streamer(key="neural-style-transfer", video_transformer_factory=NeuralStyleTransferTransformer)
