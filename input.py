@@ -1,12 +1,17 @@
+import threading
 import numpy as np
 import streamlit as st
+from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
 from PIL import Image
 import cv2
 import imutils
-from neural_style_transfer import style_transfer
+from neural_style_transfer import get_model_from_path, style_transfer
 from data import *
 
-def image_input(model):
+def image_input(style_model_name):
+    style_model_path = style_models_dict[style_model_name]
+
+    model = get_model_from_path(style_model_path)
 
     if st.sidebar.checkbox('Upload'):
         content_file = st.sidebar.file_uploader("Choose a Content Image", type=["png", "jpg", "jpeg"])
@@ -29,23 +34,55 @@ def image_input(model):
     st.image(generated, channels='BGR', clamp=True)
 
 
-def webcam_input(model):
+def webcam_input(style_model_name):
     st.header("Webcam Live Feed")
-    run = st.checkbox("Run")
-    FRAME_WINDOW = st.image([], channels='BGR')
-    SIDE_WINDOW = st.sidebar.image([], width=100, channels='BGR')
-    camera = cv2.VideoCapture(0)
     WIDTH = st.sidebar.select_slider('QUALITY (May reduce the speed)', list(range(150, 501, 50)))
 
-    while run:
-        _, frame = camera.read()
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-        # orig = frame.copy()
-        orig = imutils.resize(frame, width=300)
-        frame = imutils.resize(frame, width=WIDTH)
-        target = style_transfer(frame, model)
-        FRAME_WINDOW.image(target)
-        SIDE_WINDOW.image(orig)
-    else:
-        st.warning("NOTE: Streamlit currently doesn't support webcam. So to use this, clone this repo and run it on local server.")
-        st.warning('Stopped')
+    class NeuralStyleTransferTransformer(VideoTransformerBase):
+        _width = WIDTH
+        _model_name = style_model_name
+        _model = None
+
+        def __init__(self) -> None:
+            self._model_lock = threading.Lock()
+
+            self._width = WIDTH
+            self._update_model()
+
+        def set_width(self, width):
+            update_needed = self._width != width
+            self._width = width
+            if update_needed:
+                self._update_model()
+
+        def update_model_name(self, model_name):
+            update_needed = self._model_name != model_name
+            self._model_name = model_name
+            if update_needed:
+                self._update_model()
+
+        def _update_model(self):
+            style_model_path = style_models_dict[self._model_name]
+            with self._model_lock:
+                self._model = get_model_from_path(style_model_path)
+
+        def transform(self, frame):
+            image = frame.to_ndarray(format="bgr24")
+
+            if self._model == None:
+                return image
+
+            orig_h, orig_w = image.shape[0:2]
+
+            input = imutils.resize(image, width=self._width)
+
+            with self._model_lock:
+                transferred = style_transfer(input, self._model)
+
+            result = cv2.resize((transferred * 255).astype(np.uint8), (orig_w, orig_h))
+            return result
+
+    ctx = webrtc_streamer(key="neural-style-transfer", video_transformer_factory=NeuralStyleTransferTransformer)
+    if ctx.video_transformer:
+        ctx.video_transformer.set_width(WIDTH)
+        ctx.video_transformer.update_model_name(style_model_name)
