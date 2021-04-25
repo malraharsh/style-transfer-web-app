@@ -1,6 +1,6 @@
 imutils==0.5.3
 numpy==1.17.4
-streamlit==0.73.1
+streamlit==0.80.0
 Pillow==8.1.0
 opencv-python-headless
 streamlit-webrtc~=0.11.0
