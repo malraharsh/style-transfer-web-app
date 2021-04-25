@@ -84,6 +84,7 @@ def webcam_input(style_model_name):
 
     ctx = webrtc_streamer(
         client_settings=ClientSettings(
+            rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
             media_stream_constraints={"video": True, "audio": False},
         ),
         video_transformer_factory=NeuralStyleTransferTransformer,
