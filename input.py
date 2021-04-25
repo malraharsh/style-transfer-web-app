@@ -1,15 +1,13 @@
 import numpy as np
 import streamlit as st
-import tensorflow as tf
 from PIL import Image
-from streamlit import caching
 import cv2
 import imutils
 from neural_style_transfer import style_transfer
 from data import *
 
 def image_input(model):
-    
+
     if st.sidebar.checkbox('Upload'):
         content_file = st.sidebar.file_uploader("Choose a Content Image", type=["png", "jpg", "jpeg"])
     else:
@@ -19,12 +17,12 @@ def image_input(model):
     if content_file is not None:
         content = Image.open(content_file)
         content = np.array(content) #pil to cv
-        content = cv2.cvtColor(content, cv2.COLOR_RGB2BGR) 
+        content = cv2.cvtColor(content, cv2.COLOR_RGB2BGR)
     else:
         st.warning("Upload an Image OR Untick the Upload Button)")
         st.stop()
-     
-    WIDTH = st.sidebar.select_slider('QUALITY (May reduce the speed)', list(range(150, 501, 50)), value=200) 
+
+    WIDTH = st.sidebar.select_slider('QUALITY (May reduce the speed)', list(range(150, 501, 50)), value=200)
     content = imutils.resize(content, width=WIDTH)
     generated = style_transfer(content, model)
     st.sidebar.image(content, width=300, channels='BGR')
@@ -37,7 +35,7 @@ def webcam_input(model):
     FRAME_WINDOW = st.image([], channels='BGR')
     SIDE_WINDOW = st.sidebar.image([], width=100, channels='BGR')
     camera = cv2.VideoCapture(0)
-    WIDTH = st.sidebar.select_slider('QUALITY (May reduce the speed)', list(range(150, 501, 50))) 
+    WIDTH = st.sidebar.select_slider('QUALITY (May reduce the speed)', list(range(150, 501, 50)))
 
     while run:
         _, frame = camera.read()
@@ -48,6 +46,6 @@ def webcam_input(model):
         target = style_transfer(frame, model)
         FRAME_WINDOW.image(target)
         SIDE_WINDOW.image(orig)
-    else:        
+    else:
         st.warning("NOTE: Streamlit currently doesn't support webcam. So to use this, clone this repo and run it on local server.")
         st.warning('Stopped')
