@@ -1,7 +1,7 @@
 import threading
 import numpy as np
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
+from streamlit_webrtc import webrtc_streamer, VideoTransformerBase, ClientSettings
 from PIL import Image
 import cv2
 import imutils
@@ -82,7 +82,13 @@ def webcam_input(style_model_name):
             result = cv2.resize((transferred * 255).astype(np.uint8), (orig_w, orig_h))
             return result
 
-    ctx = webrtc_streamer(key="neural-style-transfer", video_transformer_factory=NeuralStyleTransferTransformer)
+    ctx = webrtc_streamer(
+        client_settings=ClientSettings(
+            media_stream_constraints={"video": True, "audio": False},
+        ),
+        video_transformer_factory=NeuralStyleTransferTransformer,
+        key="neural-style-transfer",
+    )
     if ctx.video_transformer:
         ctx.video_transformer.set_width(WIDTH)
         ctx.video_transformer.update_model_name(style_model_name)
