@@ -74,13 +74,13 @@ def webcam_input(style_model_name):
 
             orig_h, orig_w = image.shape[0:2]
 
-            input = imutils.resize(image, width=self._width)
+            # input = imutils.resize(image, width=self._width)
+            input = np.asarray(Image.fromarray(image).resize((self._width, int(self._width * orig_h / orig_w))))
 
             with self._model_lock:
                 transferred = style_transfer(input, self._model)
 
             result = Image.fromarray((transferred * 255).astype(np.uint8))
-            # result = cv2.resize((transferred * 255).astype(np.uint8), (orig_w, orig_h))
             return np.asarray(result.resize((orig_w, orig_h)))
 
     ctx = webrtc_streamer(
