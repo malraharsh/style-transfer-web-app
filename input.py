@@ -79,8 +79,9 @@ def webcam_input(style_model_name):
             with self._model_lock:
                 transferred = style_transfer(input, self._model)
 
-            result = cv2.resize((transferred * 255).astype(np.uint8), (orig_w, orig_h))
-            return result
+            result = Image.fromarray((transferred * 255).astype(np.uint8))
+            # result = cv2.resize((transferred * 255).astype(np.uint8), (orig_w, orig_h))
+            return np.asarray(result.resize((orig_w, orig_h)))
 
     ctx = webrtc_streamer(
         client_settings=ClientSettings(
