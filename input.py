@@ -74,7 +74,7 @@ def webcam_input(style_model_name):
 
             orig_h, orig_w = image.shape[0:2]
 
-            # input = imutils.resize(image, width=self._width)
+            # cv2.resize used in a forked thread may cause memory leaks
             input = np.asarray(Image.fromarray(image).resize((self._width, int(self._width * orig_h / orig_w))))
 
             with self._model_lock:
