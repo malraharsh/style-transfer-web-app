@@ -9,6 +9,7 @@ from neural_style_transfer import get_model_from_path, style_transfer
 from data import *
 
 import av
+from turn import get_ice_servers
 
 def image_input(style_model_name):
     style_model_path = style_models_dict[style_model_name]
@@ -70,6 +71,6 @@ def webcam_input(style_model_name):
     ctx = webrtc_streamer(
         key="neural-style-transfer",
         video_frame_callback=video_frame_callback,
-        rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
+        rtc_configuration={"iceServers": get_ice_servers()},
         media_stream_constraints={"video": True, "audio": False},
     )
